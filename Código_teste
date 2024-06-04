@@ -1,0 +1,107 @@
+
+%pip install plyer
+
+
+%pip install datetime
+
+
+from plyer import notification
+
+from datetime import date,datetime,timedelta
+
+notification.notify (
+    title = 'título da notificação',
+    message = 'Mensagem da notificação',
+    app_name = 'nome do aplicativo',
+    timeout = 10
+)
+
+def alerta(nivel,base,etapa):
+    if nivel == 1:
+        nivel = 'Alerta baixo'
+    elif nivel == 2:
+        nivel = 'Alerta médio'
+    elif nivel == 3:
+        nivel = 'Alerta alto'
+    
+    return notification.notify (
+    title = f'ATENÇÃO {nivel}',
+    message = f'Falha no carregamento da base {base} na estapa {etapa}.\n{str(datetime.now())}',
+)
+
+
+alerta(1,'Bancos','CARREGAMENTO')
+
+
+%pip install requests
+
+
+import requests
+
+api = requests.get('https://brasilapi.com.br/api/banks/v1')
+api.status_code
+
+
+
+if api.status_code == 200:
+    data_json = api.json()
+else:
+    alerta(1,'Bancos','CARREGAMENTO')
+
+
+if api.status_code == 200:
+    data_json = api.json()
+else:
+    print('Erro ao acessar a API')
+
+
+data_json
+
+
+import pandas as pd
+
+bancos = pd.DataFrame(data_json)
+bancos
+
+
+bancos.columns
+
+
+ispb = [ispb for ispb in bancos['ispb']]
+name = [name for name in bancos['name']]
+code = [code for code in bancos['code']]
+fullname = [fullname for fullname in bancos['fullName']]
+
+dados_filtrados_01 = {
+    'name': name,
+    'ispb': ispb,
+}
+
+bancos_ispb = pd.DataFrame(dados_filtrados_01)
+bancos_ispb
+
+
+dados_filtrados_02 = {
+    'name': name,
+    'code': code,
+}
+
+bancos_code = pd.DataFrame(dados_filtrados_02)
+bancos_code
+
+
+dados_filtrados_03 = {
+    'name': name,
+    'fullName': fullname,
+}
+
+bancos_fullname = pd.DataFrame(dados_filtrados_03)
+bancos_fullname
+
+
+import sqlite3
+conn = sqlite3.connect('DataBase')
+bancos.to_sql('Bancos',conn,if_exists='replace',index=False)
+conn.close()
+
+
